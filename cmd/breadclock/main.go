@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"log"
@@ -10,7 +12,8 @@ import (
 )
 
 type Config struct {
-	Env string `mapstructure:"ENV"`
+	Env  string `mapstructure:"ENV"`
+	Port int    `mapstructure:"PORT"`
 }
 
 var config Config
@@ -47,4 +50,16 @@ func main() {
 			log.Printf("failed to sync logger: %v", err)
 		}
 	}()
+
+	if config.Env == "production" {
+		gin.SetMode("release")
+	}
+
+	r := gin.Default()
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
+
+	if err := r.Run(fmt.Sprintf(":%d", config.Port)); err != nil {
+		zap.S().Errorw("error occurred while running http server", err)
+	}
 }
