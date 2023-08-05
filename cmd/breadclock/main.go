@@ -2,11 +2,18 @@ package main
 
 import (
 	"errors"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"log"
 	"os"
 	"syscall"
 )
+
+type Config struct {
+	Env string `mapstructure:"ENV"`
+}
+
+var config Config
 
 func init() {
 	// initialize logger
@@ -17,6 +24,21 @@ func init() {
 		logger = zap.Must(zap.NewDevelopment())
 	}
 	zap.ReplaceGlobals(logger)
+
+	// initialize config
+	viper.SetConfigName("config")
+	viper.AddConfigPath(".")
+	viper.AddConfigPath("../..")
+	viper.SetEnvPrefix("bc")
+	viper.AutomaticEnv()
+
+	if err := viper.ReadInConfig(); err != nil {
+		zap.S().Fatalw("failed to read in config", err)
+	}
+
+	if err := viper.Unmarshal(&config); err != nil {
+		zap.S().Fatalw("failed to unmarshal config", err)
+	}
 }
 
 func main() {
