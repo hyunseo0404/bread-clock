@@ -2,15 +2,27 @@ package main
 
 import (
 	"bread-clock/api"
+	_ "bread-clock/docs"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 	"log"
 	"os"
 	"syscall"
 )
+
+// @title		빵시계 API 서버
+// @version		1.0
+// @description	빵시계 API 서버입니다.
+
+// @host		110.165.23.18
+// @basePath	/api/v1
+
+// @securityDefinitions.bearer
 
 type Config struct {
 	Env  string `mapstructure:"ENV"`
@@ -57,6 +69,8 @@ func main() {
 	r := gin.Default()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	api.RegisterRoutes(r)
 
