@@ -29,15 +29,13 @@ func init() {
 	zap.ReplaceGlobals(logger)
 
 	// initialize config
-	viper.SetConfigName("config")
-	viper.AddConfigPath(".")
-	viper.AddConfigPath("../..")
 	viper.SetEnvPrefix("bc")
 	viper.AutomaticEnv()
 
-	if err := viper.ReadInConfig(); err != nil {
-		zap.S().Fatalw("failed to read in config", err)
-	}
+	viper.SetDefault("ENV", "development")
+
+	_ = viper.BindEnv("ENV")
+	viper.MustBindEnv("PORT")
 
 	if err := viper.Unmarshal(&config); err != nil {
 		zap.S().Fatalw("failed to unmarshal config", err)
