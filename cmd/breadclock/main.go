@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bread-clock/api"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -56,6 +57,8 @@ func main() {
 	r := gin.Default()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
+
+	api.RegisterRoutes(r)
 
 	if err := r.Run(fmt.Sprintf(":%d", config.Port)); err != nil {
 		zap.S().Errorw("error occurred while running http server", err)
