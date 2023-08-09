@@ -3,6 +3,7 @@ package main
 import (
 	"bread-clock/api"
 	_ "bread-clock/docs"
+	"bread-clock/models"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -10,6 +11,8 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 	"log"
 	"os"
 	"syscall"
@@ -25,8 +28,12 @@ import (
 // @securityDefinitions.bearer
 
 type Config struct {
-	Env  string `mapstructure:"ENV"`
-	Port int    `mapstructure:"PORT"`
+	Env           string `mapstructure:"ENV"`
+	Port          int    `mapstructure:"PORT"`
+	DB            string `mapstructure:"DB"`
+	DBUser        string `mapstructure:"DB_USER"`
+	DBPassword    string `mapstructure:"DB_PASSWORD"`
+	MigrateTables bool   `mapstructure:"MIGRATE_TABLES"`
 }
 
 var config Config
@@ -49,6 +56,10 @@ func init() {
 
 	_ = viper.BindEnv("ENV")
 	viper.MustBindEnv("PORT")
+	viper.MustBindEnv("DB")
+	viper.MustBindEnv("DB_USER")
+	viper.MustBindEnv("DB_PASSWORD")
+	_ = viper.BindEnv("MIGRATE_TABLES")
 
 	if err := viper.Unmarshal(&config); err != nil {
 		zap.S().Fatalw("failed to unmarshal config", err)
@@ -61,6 +72,16 @@ func main() {
 			log.Printf("failed to sync logger: %v", err)
 		}
 	}()
+
+	dsn := fmt.Sprintf("%s:%s@tcp(%s)/breadclock?charset=utf8&parseTime=True&loc=Local", config.DBUser, config.DBPassword, config.DB)
+	sql, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		zap.S().Fatalw("failed to connect to database", err)
+	}
+
+	if config.MigrateTables {
+		migrateTables(sql)
+	}
 
 	if config.Env == "production" {
 		gin.SetMode("release")
@@ -76,5 +97,35 @@ func main() {
 
 	if err := r.Run(fmt.Sprintf(":%d", config.Port)); err != nil {
 		zap.S().Errorw("error occurred while running http server", err)
+	}
+}
+
+func migrateTables(sql *gorm.DB) {
+	if err := sql.AutoMigrate(&models.User{}); err != nil {
+		zap.S().Fatalw("failed to migrate user table", err)
+	}
+
+	if err := sql.AutoMigrate(&models.Bakery{}); err != nil {
+		zap.S().Fatalw("failed to migrate bakery table", err)
+	}
+
+	if err := sql.AutoMigrate(&models.BakeryPhoto{}); err != nil {
+		zap.S().Fatalw("failed to migrate bakery photo table", err)
+	}
+
+	if err := sql.AutoMigrate(&models.Bread{}); err != nil {
+		zap.S().Fatalw("failed to migrate bread table", err)
+	}
+
+	if err := sql.AutoMigrate(&models.BreadPhoto{}); err != nil {
+		zap.S().Fatalw("failed to migrate bread photo table", err)
+	}
+
+	if err := sql.AutoMigrate(&models.BreadAvailability{}); err != nil {
+		zap.S().Fatalw("failed to migrate bread availability table", err)
+	}
+
+	if err := sql.AutoMigrate(&models.FavoriteBakery{}); err != nil {
+		zap.S().Fatalw("failed to migrate favorite bakery table", err)
 	}
 }
