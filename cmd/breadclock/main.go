@@ -2,6 +2,7 @@ package main
 
 import (
 	"bread-clock/api"
+	"bread-clock/configs"
 	_ "bread-clock/docs"
 	"bread-clock/models"
 	"errors"
@@ -27,17 +28,6 @@ import (
 
 // @securityDefinitions.bearer
 
-type Config struct {
-	Env           string `mapstructure:"ENV"`
-	Port          int    `mapstructure:"PORT"`
-	DB            string `mapstructure:"DB"`
-	DBUser        string `mapstructure:"DB_USER"`
-	DBPassword    string `mapstructure:"DB_PASSWORD"`
-	MigrateTables bool   `mapstructure:"MIGRATE_TABLES"`
-}
-
-var config Config
-
 func init() {
 	// initialize logger
 	var logger *zap.Logger
@@ -61,7 +51,7 @@ func init() {
 	viper.MustBindEnv("DB_PASSWORD")
 	_ = viper.BindEnv("MIGRATE_TABLES")
 
-	if err := viper.Unmarshal(&config); err != nil {
+	if err := viper.Unmarshal(&configs.Conf); err != nil {
 		zap.S().Fatalw("failed to unmarshal config", err)
 	}
 }
@@ -73,17 +63,17 @@ func main() {
 		}
 	}()
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s)/breadclock?charset=utf8&parseTime=True&loc=Local", config.DBUser, config.DBPassword, config.DB)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s)/breadclock?charset=utf8&parseTime=True&loc=Local", configs.Conf.DBUser, configs.Conf.DBPassword, configs.Conf.DB)
 	sql, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		zap.S().Fatalw("failed to connect to database", err)
 	}
 
-	if config.MigrateTables {
+	if configs.Conf.MigrateTables {
 		migrateTables(sql)
 	}
 
-	if config.Env == "production" {
+	if configs.Conf.Env == "production" {
 		gin.SetMode("release")
 	}
 
@@ -95,7 +85,7 @@ func main() {
 
 	api.RegisterRoutes(r)
 
-	if err := r.Run(fmt.Sprintf(":%d", config.Port)); err != nil {
+	if err := r.Run(fmt.Sprintf(":%d", configs.Conf.Port)); err != nil {
 		zap.S().Errorw("error occurred while running http server", err)
 	}
 }
