@@ -1,50 +1,73 @@
 package api
 
 import (
+	"bread-clock/db"
+	"bread-clock/models"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 type bakeriesHandler struct {
+	bakeryRepository db.BakeryRepository
 }
 
-type openingHours struct {
+type OpeningHours struct {
 	Open  string `json:"open"`
 	Close string `json:"close"`
 }
 
-type bread struct {
+type Bread struct {
 	ID        int  `json:"id"`
 	Available bool `json:"available"`
 }
 
-type breadDetail struct {
-	bread
-	AvailableHours []string `json:"available_hours"`
-	PhotoURL       string   `json:"photo_url"`
+type BreadDetail struct {
+	Bread
+	AvailableHours []string `json:"availableHours"`
+	PhotoURL       string   `json:"photoUrl"`
 }
 
-type breadList struct {
-	Breads []bread `json:"breads"`
+type BreadList struct {
+	Breads []Bread `json:"breads"`
 }
 
-type bakery struct {
+type Bakery struct {
 	ID           int           `json:"id"`
 	Name         string        `json:"name"`
 	Coordinates  string        `json:"coordinates"`
 	Favorite     bool          `json:"favorite"`
-	BreadDetails []breadDetail `json:"breads"`
-	PhotoURLs    []string      `json:"photo_urls"`
+	BreadDetails []BreadDetail `json:"breads"`
+	PhotoURLs    []string      `json:"photoUrls"`
 }
 
-type bakeryDetail struct {
-	bakery
+type BakeryDetail struct {
+	Bakery
 	Address      string         `json:"address"`
-	OpeningHours []openingHours `json:"opening_hours"`
+	OpeningHours []OpeningHours `json:"openingHours"`
 }
 
-type bakeryList struct {
-	Bakeries []*bakery `json:"bakeries"`
+type BakeryList struct {
+	Bakeries []Bakery `json:"bakeries"`
+}
+
+type listBakeriesRequest struct {
+	Sort     string `form:"sort"`
+	Size     int    `form:"size"`
+	Offset   int    `form:"offset"`
+	Filter   string `form:"filter"`
+	Location string `form:"loc"`
+}
+
+type updateBreadAvailability struct {
+	ID        int  `json:"id"`
+	Available bool `json:"available"`
+}
+
+type updateBreadAvailabilitiesRequest struct {
+	BakeryID            int                       `form:"bakeryId"`
+	BreadAvailabilities []updateBreadAvailability `json:"breads"`
 }
 
 // listBakeries godoc
@@ -53,16 +76,54 @@ type bakeryList struct {
 // @Tags		Bakeries
 // @Produce		json
 // @Param		sort query string false "정렬 옵션 (name|distance)"
-// @Param		loc query string false "현재 위치 좌표값 (위도,경도)"
+// @Param		size query string false "조회 개수"
+// @Param		offset query string false "조회 offset"
 // @Param		filter query string false "필터 옵션 (favorites)"
-// @Success		200 {object} bakeryList
+// @Param		loc query string false "현재 위치 좌표값 (위도,경도)"
+// @Success		200 {object} BakeryList
 // @Failure		400
 // @Failure		500
 // @Router		/bakeries [GET]
 func (h *bakeriesHandler) listBakeries(c *gin.Context) {
-	// TODO
+	userID := 0 // FIXME: get current user ID
 
-	c.JSON(http.StatusOK, &bakeryList{})
+	var req listBakeriesRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query parameters"})
+		return
+	}
+
+	var sortOption db.SortOption
+	switch req.Sort {
+	case "name":
+		sortOption = db.SortByName
+	case "distance":
+		sortOption = db.SortByDistance
+	default:
+		sortOption = db.SortByName
+	}
+
+	if req.Size < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("invalid size value: %d", req.Size)})
+		return
+	}
+
+	if req.Offset < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("invalid offset value: %d", req.Offset)})
+		return
+	}
+
+	if req.Size == 0 {
+		req.Size = 10
+	}
+
+	bakeries, err := h.bakeryRepository.List(c, sortOption, req.Size, req.Offset, userID)
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, bakeries)
 }
 
 // getBakery godoc
@@ -71,15 +132,27 @@ func (h *bakeriesHandler) listBakeries(c *gin.Context) {
 // @Tags		Bakeries
 // @Produce		json
 // @Param		bakeryId path int true "빵집 ID"
-// @Success		200 {object} bakeryDetail
+// @Success		200 {object} BakeryDetail
 // @Failure		400
 // @Failure		404
 // @Failure		500
 // @Router		/bakeries/:bakeryId [GET]
 func (h *bakeriesHandler) getBakery(c *gin.Context) {
-	// TODO
+	userID := 0 // FIXME: get current user ID
 
-	c.JSON(http.StatusOK, &bakeryDetail{})
+	bakeryID, err := strconv.Atoi(c.Param("bakeryId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
+
+	bakery, err := h.bakeryRepository.Get(c, bakeryID, userID)
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, &bakery)
 }
 
 // markBakeryAsFavorite godoc
@@ -94,7 +167,18 @@ func (h *bakeriesHandler) getBakery(c *gin.Context) {
 // @Failure		500
 // @Router		/bakeries/:bakeryId/favorite [PUT]
 func (h *bakeriesHandler) markBakeryAsFavorite(c *gin.Context) {
-	// TODO
+	userID := 0 // FIXME: get current user ID
+
+	bakeryID, err := strconv.Atoi(c.Param("bakeryId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
+
+	if err = h.bakeryRepository.MarkAsFavorite(c, bakeryID, userID); err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
 
 	c.Status(http.StatusOK)
 }
@@ -111,7 +195,14 @@ func (h *bakeriesHandler) markBakeryAsFavorite(c *gin.Context) {
 // @Failure		500
 // @Router		/bakeries/:bakeryId/favorite [DELETE]
 func (h *bakeriesHandler) unmarkBakeryAsFavorite(c *gin.Context) {
-	// TODO
+	userID := 0 // FIXME: get current user ID
+
+	bakeryID, err := strconv.Atoi(c.Param("bakeryId"))
+
+	if err = h.bakeryRepository.UnmarkAsFavorite(c, bakeryID, userID); err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
 
 	c.Status(http.StatusOK)
 }
@@ -122,14 +213,39 @@ func (h *bakeriesHandler) unmarkBakeryAsFavorite(c *gin.Context) {
 // @Tags		Bakeries
 // @Produce		json
 // @Param		bakeryId path int true "빵집 ID"
-// @Param		breadList body breadList true "빵 정보 리스트"
+// @Param		BreadList body BreadList true "빵 정보 리스트"
 // @Success		200
 // @Failure		400
 // @Failure		404
 // @Failure		500
 // @Router		/bakeries/:bakeryId/breads/availability [PUT]
 func (h *bakeriesHandler) updateBreadAvailabilities(c *gin.Context) {
-	// TODO
+	var req updateBreadAvailabilitiesRequest
+	if err := c.ShouldBind(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
+
+	var err error
+	req.BakeryID, err = strconv.Atoi(c.Param("bakeryId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
+
+	var breadAvailabilities []models.BreadAvailability
+	for _, availability := range req.BreadAvailabilities {
+		breadAvailabilities = append(breadAvailabilities, models.BreadAvailability{
+			BakeryID:  req.BakeryID,
+			BreadID:   availability.ID,
+			Available: availability.Available,
+		})
+	}
+
+	if err = h.bakeryRepository.UpdateBreadAvailabilities(c, breadAvailabilities); err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
 
 	c.Status(http.StatusOK)
 }

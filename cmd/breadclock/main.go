@@ -3,6 +3,7 @@ package main
 import (
 	"bread-clock/api"
 	"bread-clock/configs"
+	"bread-clock/db"
 	_ "bread-clock/docs"
 	"bread-clock/models"
 	"errors"
@@ -73,6 +74,8 @@ func main() {
 		migrateTables(sql)
 	}
 
+	bakeryRepository := db.NewBakeryRepository(sql)
+
 	if configs.Conf.Env == "production" {
 		gin.SetMode("release")
 	}
@@ -83,7 +86,7 @@ func main() {
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	api.RegisterRoutes(r)
+	api.RegisterRoutes(r, bakeryRepository)
 
 	if err := r.Run(fmt.Sprintf(":%d", configs.Conf.Port)); err != nil {
 		zap.S().Errorw("error occurred while running http server", err)
