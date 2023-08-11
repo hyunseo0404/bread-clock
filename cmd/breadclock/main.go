@@ -16,6 +16,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"
+	"net/http"
 	"os"
 	"syscall"
 )
@@ -86,6 +87,9 @@ func main() {
 	r.Use(gin.Recovery())
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	r.GET("/api/v1", func(c *gin.Context) {
+		c.Redirect(http.StatusPermanentRedirect, "/swagger/index.html")
+	})
 
 	api.RegisterRoutes(r, bakeryRepository)
 
