@@ -24,7 +24,8 @@ import (
 // @version		1.0
 // @description	빵시계 API 서버입니다.
 
-// @host		110.165.23.18
+// @host		breadclock.hyunchung.dev
+// @schemes		https
 // @basePath	/api/v1
 
 // @securityDefinitions.bearer

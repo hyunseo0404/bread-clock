@@ -1,10 +1,10 @@
 basePath: /api/v1
 definitions:
-  api.bakery:
+  api.Bakery:
     properties:
       breads:
         items:
-          $ref: '#/definitions/api.breadDetail'
+          $ref: '#/definitions/api.BreadDetail'
         type: array
       coordinates:
         type: string
@@ -14,18 +14,18 @@ definitions:
         type: integer
       name:
         type: string
-      photo_urls:
+      photoUrls:
         items:
           type: string
         type: array
     type: object
-  api.bakeryDetail:
+  api.BakeryDetail:
     properties:
       address:
         type: string
       breads:
         items:
-          $ref: '#/definitions/api.breadDetail'
+          $ref: '#/definitions/api.BreadDetail'
         type: array
       coordinates:
         type: string
@@ -35,48 +35,55 @@ definitions:
         type: integer
       name:
         type: string
-      opening_hours:
+      openingHours:
         items:
-          $ref: '#/definitions/api.openingHours'
+          $ref: '#/definitions/api.OpeningHours'
         type: array
-      photo_urls:
+      photoUrls:
         items:
           type: string
         type: array
     type: object
-  api.bakeryList:
+  api.BakeryList:
     properties:
       bakeries:
         items:
-          $ref: '#/definitions/api.bakery'
+          $ref: '#/definitions/api.Bakery'
         type: array
     type: object
-  api.bread:
+  api.Bread:
     properties:
       available:
         type: boolean
       id:
         type: integer
     type: object
-  api.breadDetail:
+  api.BreadDetail:
     properties:
       available:
         type: boolean
-      available_hours:
+      availableHours:
         items:
           type: string
         type: array
       id:
         type: integer
-      photo_url:
+      photoUrl:
         type: string
     type: object
-  api.breadList:
+  api.BreadList:
     properties:
       breads:
         items:
-          $ref: '#/definitions/api.bread'
+          $ref: '#/definitions/api.Bread'
         type: array
+    type: object
+  api.OpeningHours:
+    properties:
+      close:
+        type: string
+      open:
+        type: string
     type: object
   api.loginRequest:
     properties:
@@ -85,14 +92,7 @@ definitions:
       provider:
         type: string
     type: object
-  api.openingHours:
-    properties:
-      close:
-        type: string
-      open:
-        type: string
-    type: object
-host: 110.165.23.18
+host: breadclock.hyunchung.dev
 info:
   contact: {}
   description: 빵시계 API 서버입니다.
@@ -129,13 +129,21 @@ paths:
         in: query
         name: sort
         type: string
-      - description: 현재 위치 좌표값 (위도,경도)
+      - description: 조회 개수
         in: query
-        name: loc
+        name: size
+        type: string
+      - description: 조회 offset
+        in: query
+        name: offset
         type: string
       - description: 필터 옵션 (favorites)
         in: query
         name: filter
+        type: string
+      - description: 현재 위치 좌표값 (위도,경도)
+        in: query
+        name: loc
         type: string
       produces:
       - application/json
@@ -143,7 +151,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.bakeryList'
+            $ref: '#/definitions/api.BakeryList'
         "400":
           description: Bad Request
         "500":
@@ -160,13 +168,17 @@ paths:
         name: bakeryId
         required: true
         type: integer
+      - description: 현재 위치 좌표값 (위도,경도)
+        in: query
+        name: loc
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.bakeryDetail'
+            $ref: '#/definitions/api.BakeryDetail'
         "400":
           description: Bad Request
         "404":
@@ -187,10 +199,10 @@ paths:
         type: integer
       - description: 빵 정보 리스트
         in: body
-        name: breadList
+        name: BreadList
         required: true
         schema:
-          $ref: '#/definitions/api.breadList'
+          $ref: '#/definitions/api.BreadList'
       produces:
       - application/json
       responses:
@@ -263,6 +275,18 @@ paths:
         in: query
         name: sort
         type: string
+      - description: 조회 개수
+        in: query
+        name: size
+        type: string
+      - description: 조회 offset
+        in: query
+        name: offset
+        type: string
+      - description: 필터 옵션 (favorites)
+        in: query
+        name: filter
+        type: string
       - description: 현재 위치 좌표값 (위도,경도)
         in: query
         name: loc
@@ -273,7 +297,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.bakeryList'
+            $ref: '#/definitions/api.BakeryList'
         "400":
           description: Bad Request
         "500":
@@ -281,4 +305,6 @@ paths:
       summary: 빵 이름으로 빵집 검색
       tags:
       - Search
+schemes:
+- https
 swagger: "2.0"

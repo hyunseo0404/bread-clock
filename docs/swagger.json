@@ -1,4 +1,7 @@
 {
+    "schemes": [
+        "https"
+    ],
     "swagger": "2.0",
     "info": {
         "description": "빵시계 API 서버입니다.",
@@ -6,7 +9,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "110.165.23.18",
+    "host": "breadclock.hyunchung.dev",
     "basePath": "/api/v1",
     "paths": {
         "/auth/login": {
@@ -62,8 +65,14 @@
                     },
                     {
                         "type": "string",
-                        "description": "현재 위치 좌표값 (위도,경도)",
-                        "name": "loc",
+                        "description": "조회 개수",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "조회 offset",
+                        "name": "offset",
                         "in": "query"
                     },
                     {
@@ -71,13 +80,19 @@
                         "description": "필터 옵션 (favorites)",
                         "name": "filter",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "현재 위치 좌표값 (위도,경도)",
+                        "name": "loc",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.bakeryList"
+                            "$ref": "#/definitions/api.BakeryList"
                         }
                     },
                     "400": {
@@ -106,13 +121,19 @@
                         "name": "bakeryId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "현재 위치 좌표값 (위도,경도)",
+                        "name": "loc",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.bakeryDetail"
+                            "$ref": "#/definitions/api.BakeryDetail"
                         }
                     },
                     "400": {
@@ -147,11 +168,11 @@
                     },
                     {
                         "description": "빵 정보 리스트",
-                        "name": "breadList",
+                        "name": "BreadList",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.breadList"
+                            "$ref": "#/definitions/api.BreadList"
                         }
                     }
                 ],
@@ -265,6 +286,24 @@
                     },
                     {
                         "type": "string",
+                        "description": "조회 개수",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "조회 offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "필터 옵션 (favorites)",
+                        "name": "filter",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "현재 위치 좌표값 (위도,경도)",
                         "name": "loc",
                         "in": "query"
@@ -274,7 +313,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.bakeryList"
+                            "$ref": "#/definitions/api.BakeryList"
                         }
                     },
                     "400": {
@@ -288,13 +327,13 @@
         }
     },
     "definitions": {
-        "api.bakery": {
+        "api.Bakery": {
             "type": "object",
             "properties": {
                 "breads": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/api.breadDetail"
+                        "$ref": "#/definitions/api.BreadDetail"
                     }
                 },
                 "coordinates": {
@@ -309,7 +348,7 @@
                 "name": {
                     "type": "string"
                 },
-                "photo_urls": {
+                "photoUrls": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -317,7 +356,7 @@
                 }
             }
         },
-        "api.bakeryDetail": {
+        "api.BakeryDetail": {
             "type": "object",
             "properties": {
                 "address": {
@@ -326,7 +365,7 @@
                 "breads": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/api.breadDetail"
+                        "$ref": "#/definitions/api.BreadDetail"
                     }
                 },
                 "coordinates": {
@@ -341,13 +380,13 @@
                 "name": {
                     "type": "string"
                 },
-                "opening_hours": {
+                "openingHours": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/api.openingHours"
+                        "$ref": "#/definitions/api.OpeningHours"
                     }
                 },
-                "photo_urls": {
+                "photoUrls": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -355,18 +394,18 @@
                 }
             }
         },
-        "api.bakeryList": {
+        "api.BakeryList": {
             "type": "object",
             "properties": {
                 "bakeries": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/api.bakery"
+                        "$ref": "#/definitions/api.Bakery"
                     }
                 }
             }
         },
-        "api.bread": {
+        "api.Bread": {
             "type": "object",
             "properties": {
                 "available": {
@@ -377,13 +416,13 @@
                 }
             }
         },
-        "api.breadDetail": {
+        "api.BreadDetail": {
             "type": "object",
             "properties": {
                 "available": {
                     "type": "boolean"
                 },
-                "available_hours": {
+                "availableHours": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -392,19 +431,30 @@
                 "id": {
                     "type": "integer"
                 },
-                "photo_url": {
+                "photoUrl": {
                     "type": "string"
                 }
             }
         },
-        "api.breadList": {
+        "api.BreadList": {
             "type": "object",
             "properties": {
                 "breads": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/api.bread"
+                        "$ref": "#/definitions/api.Bread"
                     }
+                }
+            }
+        },
+        "api.OpeningHours": {
+            "type": "object",
+            "properties": {
+                "close": {
+                    "type": "string"
+                },
+                "open": {
+                    "type": "string"
                 }
             }
         },
@@ -415,17 +465,6 @@
                     "type": "string"
                 },
                 "provider": {
-                    "type": "string"
-                }
-            }
-        },
-        "api.openingHours": {
-            "type": "object",
-            "properties": {
-                "close": {
-                    "type": "string"
-                },
-                "open": {
                     "type": "string"
                 }
             }

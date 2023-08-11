@@ -69,8 +69,14 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "현재 위치 좌표값 (위도,경도)",
-                        "name": "loc",
+                        "description": "조회 개수",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "조회 offset",
+                        "name": "offset",
                         "in": "query"
                     },
                     {
@@ -78,13 +84,19 @@ const docTemplate = `{
                         "description": "필터 옵션 (favorites)",
                         "name": "filter",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "현재 위치 좌표값 (위도,경도)",
+                        "name": "loc",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.bakeryList"
+                            "$ref": "#/definitions/api.BakeryList"
                         }
                     },
                     "400": {
@@ -113,13 +125,19 @@ const docTemplate = `{
                         "name": "bakeryId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "현재 위치 좌표값 (위도,경도)",
+                        "name": "loc",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.bakeryDetail"
+                            "$ref": "#/definitions/api.BakeryDetail"
                         }
                     },
                     "400": {
@@ -154,11 +172,11 @@ const docTemplate = `{
                     },
                     {
                         "description": "빵 정보 리스트",
-                        "name": "breadList",
+                        "name": "BreadList",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.breadList"
+                            "$ref": "#/definitions/api.BreadList"
                         }
                     }
                 ],
@@ -272,6 +290,24 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "조회 개수",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "조회 offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "필터 옵션 (favorites)",
+                        "name": "filter",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "현재 위치 좌표값 (위도,경도)",
                         "name": "loc",
                         "in": "query"
@@ -281,7 +317,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.bakeryList"
+                            "$ref": "#/definitions/api.BakeryList"
                         }
                     },
                     "400": {
@@ -295,13 +331,13 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "api.bakery": {
+        "api.Bakery": {
             "type": "object",
             "properties": {
                 "breads": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/api.breadDetail"
+                        "$ref": "#/definitions/api.BreadDetail"
                     }
                 },
                 "coordinates": {
@@ -316,7 +352,7 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "photo_urls": {
+                "photoUrls": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -324,7 +360,7 @@ const docTemplate = `{
                 }
             }
         },
-        "api.bakeryDetail": {
+        "api.BakeryDetail": {
             "type": "object",
             "properties": {
                 "address": {
@@ -333,7 +369,7 @@ const docTemplate = `{
                 "breads": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/api.breadDetail"
+                        "$ref": "#/definitions/api.BreadDetail"
                     }
                 },
                 "coordinates": {
@@ -348,13 +384,13 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "opening_hours": {
+                "openingHours": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/api.openingHours"
+                        "$ref": "#/definitions/api.OpeningHours"
                     }
                 },
-                "photo_urls": {
+                "photoUrls": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -362,18 +398,18 @@ const docTemplate = `{
                 }
             }
         },
-        "api.bakeryList": {
+        "api.BakeryList": {
             "type": "object",
             "properties": {
                 "bakeries": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/api.bakery"
+                        "$ref": "#/definitions/api.Bakery"
                     }
                 }
             }
         },
-        "api.bread": {
+        "api.Bread": {
             "type": "object",
             "properties": {
                 "available": {
@@ -384,13 +420,13 @@ const docTemplate = `{
                 }
             }
         },
-        "api.breadDetail": {
+        "api.BreadDetail": {
             "type": "object",
             "properties": {
                 "available": {
                     "type": "boolean"
                 },
-                "available_hours": {
+                "availableHours": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -399,19 +435,30 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "photo_url": {
+                "photoUrl": {
                     "type": "string"
                 }
             }
         },
-        "api.breadList": {
+        "api.BreadList": {
             "type": "object",
             "properties": {
                 "breads": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/api.bread"
+                        "$ref": "#/definitions/api.Bread"
                     }
+                }
+            }
+        },
+        "api.OpeningHours": {
+            "type": "object",
+            "properties": {
+                "close": {
+                    "type": "string"
+                },
+                "open": {
+                    "type": "string"
                 }
             }
         },
@@ -425,17 +472,6 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
-        },
-        "api.openingHours": {
-            "type": "object",
-            "properties": {
-                "close": {
-                    "type": "string"
-                },
-                "open": {
-                    "type": "string"
-                }
-            }
         }
     }
 }`
@@ -443,9 +479,9 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "110.165.23.18",
+	Host:             "breadclock.hyunchung.dev",
 	BasePath:         "/api/v1",
-	Schemes:          []string{},
+	Schemes:          []string{"https"},
 	Title:            "빵시계 API 서버",
 	Description:      "빵시계 API 서버입니다.",
 	InfoInstanceName: "swagger",
