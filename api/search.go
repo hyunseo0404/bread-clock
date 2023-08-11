@@ -68,7 +68,24 @@ func (h *searchHandler) searchBakeries(c *gin.Context) {
 		req.Size = 10
 	}
 
-	bakeries, err := h.bakeryRepository.ListForBreads(c, req.Query, sortOption, req.Size, req.Offset, userID)
+	var latitude, longitude float64
+	var needsDistance bool
+	if req.Sort == db.SortByDistance {
+		if len(req.Location) == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprint("coordinates required if using the 'distance' filter option")})
+			return
+		}
+
+		_, err := fmt.Sscanf(req.Location+"~", "%f,%f~", &latitude, &longitude)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("invalid coordinates: %s", req.Location)})
+			return
+		}
+
+		needsDistance = true
+	}
+
+	bakeries, err := h.bakeryRepository.ListForBreads(c, req.Query, sortOption, req.Size, req.Offset, latitude, longitude, needsDistance, userID)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
 		return

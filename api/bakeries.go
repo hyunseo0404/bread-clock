@@ -117,7 +117,24 @@ func (h *bakeriesHandler) listBakeries(c *gin.Context) {
 		req.Size = 10
 	}
 
-	bakeries, err := h.bakeryRepository.List(c, sortOption, req.Size, req.Offset, userID)
+	var latitude, longitude float64
+	var needsDistance bool
+	if sortOption == db.SortByDistance {
+		if len(req.Location) == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprint("coordinates required if using the 'distance' filter option")})
+			return
+		}
+
+		_, err := fmt.Sscanf(req.Location+"~", "%f,%f~", &latitude, &longitude)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("invalid coordinates: %s", req.Location)})
+			return
+		}
+
+		needsDistance = true
+	}
+
+	bakeries, err := h.bakeryRepository.List(c, sortOption, req.Size, req.Offset, latitude, longitude, needsDistance, userID)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
 		return
@@ -132,6 +149,7 @@ func (h *bakeriesHandler) listBakeries(c *gin.Context) {
 // @Tags		Bakeries
 // @Produce		json
 // @Param		bakeryId path int true "빵집 ID"
+// @Param		loc query string false "현재 위치 좌표값 (위도,경도)"
 // @Success		200 {object} BakeryDetail
 // @Failure		400
 // @Failure		404
@@ -146,7 +164,17 @@ func (h *bakeriesHandler) getBakery(c *gin.Context) {
 		return
 	}
 
-	bakery, err := h.bakeryRepository.Get(c, bakeryID, userID)
+	var latitude, longitude float64
+	location, needsDistance := c.GetQuery("loc")
+	if needsDistance {
+		_, err := fmt.Sscanf(location+"~", "%f,%f~", &latitude, &longitude)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("invalid coordinates: %s", location)})
+			return
+		}
+	}
+
+	bakery, err := h.bakeryRepository.Get(c, bakeryID, latitude, longitude, needsDistance, userID)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
 		return
