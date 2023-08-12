@@ -67,14 +67,15 @@ func (r *bakeryRepository) List(ctx context.Context, sortOption SortOption, size
 		Table("bakeries AS b").
 		Select(fmt.Sprintf("id, name, address, opening_hours, latitude, longitude, (%s) AS distance, user_id", distance)).
 		Joins(fmt.Sprintf("LEFT JOIN favorite_bakeries AS fb ON b.id = fb.bakery_id AND fb.user_id = %d", userID)).
+		Order(string(sortOption)).
 		Offset(offset).
 		Limit(size)
 	query := tx.
 		Select("b.id, b.name, b.address, b.opening_hours, b.latitude, b.longitude, b.distance, user_id, GROUP_CONCAT(url) as photo_urls").
 		Table("(?) AS b", subQuery).
 		Joins("LEFT JOIN bakery_photos AS bp ON bp.bakery_id = b.id").
-		Order(string(sortOption)).
-		Group("b.id")
+		Group("b.id").
+		Order(string(sortOption))
 	err := query.Find(&bakeryDAOs).Error
 	if err != nil {
 		return nil, err
@@ -179,6 +180,7 @@ func (r *bakeryRepository) ListForBreads(ctx context.Context, q string, sortOpti
 		Table("bakeries").
 		Select(fmt.Sprintf("*, (%s) AS distance", distance)).
 		Where("id IN (?)", bakeryIDs).
+		Order(string(sortOption)).
 		Offset(offset).
 		Limit(size)
 	query = tx.
@@ -186,8 +188,8 @@ func (r *bakeryRepository) ListForBreads(ctx context.Context, q string, sortOpti
 		Table("(?) AS b", subQuery).
 		Joins(fmt.Sprintf("LEFT JOIN favorite_bakeries AS fb ON fb.bakery_id = b.id AND fb.user_id = %d", userID)).
 		Joins("LEFT JOIN bakery_photos AS bp ON bp.bakery_id = b.id").
-		Order(string(sortOption)).
-		Group("b.id")
+		Group("b.id").
+		Order(string(sortOption))
 	if err := query.Find(&bakeryDAOs).Error; err != nil {
 		return nil, err
 	}
