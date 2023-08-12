@@ -111,7 +111,7 @@ func (r *bakeryRepository) List(ctx context.Context, sortOption SortOption, size
 		breadDetailMap[breadDAO.BakeryID] = append(breadDetailMap[breadDAO.BakeryID], bread)
 	}
 
-	var bakeries []models.BakeryDetail
+	bakeries := make([]models.BakeryDetail, 0)
 	for _, bakeryDAO := range bakeryDAOs {
 		var bakeryDistance *float64
 		if needsDistance {
@@ -194,7 +194,7 @@ func (r *bakeryRepository) ListForBreads(ctx context.Context, q string, sortOpti
 		return nil, err
 	}
 
-	var bakeries []models.BakeryDetail
+	bakeries := make([]models.BakeryDetail, 0)
 	for _, bakeryDAO := range bakeryDAOs {
 		var bakeryDistance *float64
 		if needsDistance {
