@@ -317,8 +317,10 @@ func (r *bakeryRepository) UnmarkAsFavorite(ctx context.Context, bakeryID int, u
 func (r *bakeryRepository) UpdateBreadAvailabilities(ctx context.Context, breadAvailabilities []models.BreadAvailability) error {
 	tx := r.db.WithContext(ctx)
 
-	if err := tx.Updates(breadAvailabilities).Error; err != nil {
-		return err
+	for _, availability := range breadAvailabilities {
+		if err := tx.Model(&availability).UpdateColumn("available", availability.Available).Error; err != nil {
+			return err
+		}
 	}
 
 	return nil
