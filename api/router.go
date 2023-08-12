@@ -21,13 +21,13 @@ func RegisterRoutes(r *gin.Engine, userRepository db.UserRepository, bakeryRepos
 		bakeryRepository: bakeryRepository,
 	}
 	searchRouter := g.Group("/search")
-	searchRouter.GET("/", sh.searchBakeries)
+	searchRouter.GET("", sh.searchBakeries)
 
 	bh := bakeriesHandler{
 		bakeryRepository: bakeryRepository,
 	}
 	bakeriesRouter := g.Group("/bakeries")
-	bakeriesRouter.GET("/", bh.listBakeries)
+	bakeriesRouter.GET("", bh.listBakeries)
 	bakeriesRouter.GET("/:bakeryId", bh.getBakery)
 	bakeriesRouter.PUT("/:bakeryId/favorite", bh.markBakeryAsFavorite)
 	bakeriesRouter.DELETE("/:bakeryId/favorite", bh.unmarkBakeryAsFavorite)
