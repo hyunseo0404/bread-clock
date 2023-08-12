@@ -53,6 +53,7 @@ func init() {
 	viper.MustBindEnv("DB_USER")
 	viper.MustBindEnv("DB_PASSWORD")
 	_ = viper.BindEnv("MIGRATE_TABLES")
+	viper.MustBindEnv("AUTH_KEY")
 
 	if err := viper.Unmarshal(&configs.Conf); err != nil {
 		zap.S().Fatalw("failed to unmarshal config", err)
