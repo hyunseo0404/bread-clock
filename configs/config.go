@@ -9,4 +9,5 @@ type Config struct {
 	DBUser        string `mapstructure:"DB_USER"`
 	DBPassword    string `mapstructure:"DB_PASSWORD"`
 	MigrateTables bool   `mapstructure:"MIGRATE_TABLES"`
+	AuthKey       string `mapstructure:"AUTH_KEY"`
 }

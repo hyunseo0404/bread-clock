@@ -85,7 +85,7 @@ type updateBreadAvailabilitiesRequest struct {
 // @Failure		500
 // @Router		/bakeries [GET]
 func (h *bakeriesHandler) listBakeries(c *gin.Context) {
-	userID := 0 // FIXME: get current user ID
+	userID := c.GetInt("user_id")
 
 	var req listBakeriesRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -156,7 +156,7 @@ func (h *bakeriesHandler) listBakeries(c *gin.Context) {
 // @Failure		500
 // @Router		/bakeries/:bakeryId [GET]
 func (h *bakeriesHandler) getBakery(c *gin.Context) {
-	userID := 0 // FIXME: get current user ID
+	userID := c.GetInt("user_id")
 
 	bakeryID, err := strconv.Atoi(c.Param("bakeryId"))
 	if err != nil {
@@ -195,7 +195,11 @@ func (h *bakeriesHandler) getBakery(c *gin.Context) {
 // @Failure		500
 // @Router		/bakeries/:bakeryId/favorite [PUT]
 func (h *bakeriesHandler) markBakeryAsFavorite(c *gin.Context) {
-	userID := 0 // FIXME: get current user ID
+	userID := c.GetInt("user_id")
+	if userID <= 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not logged in"})
+		return
+	}
 
 	bakeryID, err := strconv.Atoi(c.Param("bakeryId"))
 	if err != nil {
@@ -223,9 +227,17 @@ func (h *bakeriesHandler) markBakeryAsFavorite(c *gin.Context) {
 // @Failure		500
 // @Router		/bakeries/:bakeryId/favorite [DELETE]
 func (h *bakeriesHandler) unmarkBakeryAsFavorite(c *gin.Context) {
-	userID := 0 // FIXME: get current user ID
+	userID := c.GetInt("user_id")
+	if userID <= 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not logged in"})
+		return
+	}
 
 	bakeryID, err := strconv.Atoi(c.Param("bakeryId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
 
 	if err = h.bakeryRepository.UnmarkAsFavorite(c, bakeryID, userID); err != nil {
 		c.Status(http.StatusInternalServerError)
@@ -248,6 +260,12 @@ func (h *bakeriesHandler) unmarkBakeryAsFavorite(c *gin.Context) {
 // @Failure		500
 // @Router		/bakeries/:bakeryId/breads/availability [PUT]
 func (h *bakeriesHandler) updateBreadAvailabilities(c *gin.Context) {
+	userID := c.GetInt("user_id")
+	if userID <= 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not logged in"})
+		return
+	}
+
 	var req updateBreadAvailabilitiesRequest
 	if err := c.ShouldBind(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})

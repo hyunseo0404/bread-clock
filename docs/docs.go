@@ -16,7 +16,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/auth/login": {
+        "/auth/login/:provider": {
             "post": {
                 "description": "OAuth2로 발급 받은 코드를 이용한 토큰 발급 및 로그인 처리",
                 "produces": [
@@ -27,6 +27,13 @@ const docTemplate = `{
                 ],
                 "summary": "로그인",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "OAuth2 provider",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "로그인 요청 정보",
                         "name": "loginRequest",
@@ -465,7 +472,7 @@ const docTemplate = `{
         "api.loginRequest": {
             "type": "object",
             "properties": {
-                "code": {
+                "accessToken": {
                     "type": "string"
                 },
                 "provider": {

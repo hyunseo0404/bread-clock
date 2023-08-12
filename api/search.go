@@ -36,7 +36,7 @@ type searchBakeriesRequest struct {
 // @Failure		500
 // @Router		/search [GET]
 func (h *searchHandler) searchBakeries(c *gin.Context) {
-	userID := 0 // FIXME: get current user ID
+	userID := c.GetInt("user_id")
 
 	var req searchBakeriesRequest
 	if err := c.ShouldBindQuery(&req); err != nil {

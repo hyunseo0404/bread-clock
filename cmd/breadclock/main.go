@@ -77,6 +77,7 @@ func main() {
 	}
 
 	bakeryRepository := db.NewBakeryRepository(sql)
+	userRepository := db.NewUserRepository(sql)
 
 	if configs.Conf.Env == "production" {
 		gin.SetMode("release")
@@ -91,7 +92,7 @@ func main() {
 		c.Redirect(http.StatusPermanentRedirect, "/swagger/index.html")
 	})
 
-	api.RegisterRoutes(r, bakeryRepository)
+	api.RegisterRoutes(r, userRepository, bakeryRepository)
 
 	if err := r.Run(fmt.Sprintf(":%d", configs.Conf.Port)); err != nil {
 		zap.S().Errorw("error occurred while running http server", err)

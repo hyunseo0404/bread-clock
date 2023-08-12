@@ -87,7 +87,7 @@ definitions:
     type: object
   api.loginRequest:
     properties:
-      code:
+      accessToken:
         type: string
       provider:
         type: string
@@ -99,10 +99,15 @@ info:
   title: 빵시계 API 서버
   version: "1.0"
 paths:
-  /auth/login:
+  /auth/login/:provider:
     post:
       description: OAuth2로 발급 받은 코드를 이용한 토큰 발급 및 로그인 처리
       parameters:
+      - description: OAuth2 provider
+        in: path
+        name: provider
+        required: true
+        type: string
       - description: 로그인 요청 정보
         in: body
         name: loginRequest
