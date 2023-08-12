@@ -1,6 +1,7 @@
 package db
 
 import (
+	e "bread-clock/error"
 	"bread-clock/models"
 	"context"
 	"errors"
@@ -235,6 +236,10 @@ func (r *bakeryRepository) Get(ctx context.Context, bakeryID int, latitude float
 		return nil, err
 	}
 
+	if bakeryDAO.ID == 0 {
+		return nil, e.ErrDBNotFound
+	}
+
 	var breadDAOs []BreadDAO
 	err = tx.Table("bread_availabilities AS ba").
 		Select("b.id, b.name, ba.available, ba.available_hours, url AS photo_url").
@@ -292,8 +297,15 @@ func (r *bakeryRepository) MarkAsFavorite(ctx context.Context, bakeryID int, use
 
 	if err := tx.Create(&favoriteBakery).Error; err != nil {
 		var mySQLError *mysql.MySQLError
-		if errors.As(err, &mySQLError) && mySQLError.Number == 1062 {
-			return nil
+		if errors.As(err, &mySQLError) {
+			switch mySQLError.Number {
+			case 1062:
+				// duplicate entry
+				return nil
+			case 1452:
+				// invalid bakery id or user id
+				return e.ErrDBNotFound
+			}
 		}
 		return err
 	}

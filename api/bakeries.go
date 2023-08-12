@@ -2,7 +2,9 @@ package api
 
 import (
 	"bread-clock/db"
+	e "bread-clock/error"
 	"bread-clock/models"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -176,6 +178,10 @@ func (h *bakeriesHandler) getBakery(c *gin.Context) {
 
 	bakery, err := h.bakeryRepository.Get(c, bakeryID, latitude, longitude, needsDistance, userID)
 	if err != nil {
+		if errors.Is(err, e.ErrDBNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("no matching bakery for bakeryId: %d", bakeryID)})
+			return
+		}
 		c.Status(http.StatusInternalServerError)
 		return
 	}
@@ -208,6 +214,10 @@ func (h *bakeriesHandler) markBakeryAsFavorite(c *gin.Context) {
 	}
 
 	if err = h.bakeryRepository.MarkAsFavorite(c, bakeryID, userID); err != nil {
+		if errors.Is(err, e.ErrDBNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("no matching bakery for bakeryId: %d", bakeryID)})
+			return
+		}
 		c.Status(http.StatusInternalServerError)
 		return
 	}
