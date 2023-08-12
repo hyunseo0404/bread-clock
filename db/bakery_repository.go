@@ -119,13 +119,13 @@ func (r *bakeryRepository) List(ctx context.Context, sortOption SortOption, size
 
 		bakeries = append(bakeries, models.BakeryDetail{
 			Bakery: models.Bakery{
-				ID:           bakeryDAO.ID,
-				Name:         bakeryDAO.Name,
-				Address:      bakeryDAO.Address,
-				OpeningHours: bakeryDAO.OpeningHours,
-				Latitude:     bakeryDAO.Latitude,
-				Longitude:    bakeryDAO.Longitude,
+				ID:        bakeryDAO.ID,
+				Name:      bakeryDAO.Name,
+				Address:   bakeryDAO.Address,
+				Latitude:  bakeryDAO.Latitude,
+				Longitude: bakeryDAO.Longitude,
 			},
+			OpeningHours: convertOpeningHours(bakeryDAO.OpeningHours),
 			Distance:     bakeryDistance,
 			Favorite:     bakeryDAO.UserID != nil,
 			BreadDetails: breadDetailMap[bakeryDAO.ID],
@@ -201,13 +201,13 @@ func (r *bakeryRepository) ListForBreads(ctx context.Context, q string, sortOpti
 
 		bakeries = append(bakeries, models.BakeryDetail{
 			Bakery: models.Bakery{
-				ID:           bakeryDAO.ID,
-				Name:         bakeryDAO.Name,
-				Address:      bakeryDAO.Address,
-				OpeningHours: bakeryDAO.OpeningHours,
-				Latitude:     bakeryDAO.Latitude,
-				Longitude:    bakeryDAO.Longitude,
+				ID:        bakeryDAO.ID,
+				Name:      bakeryDAO.Name,
+				Address:   bakeryDAO.Address,
+				Latitude:  bakeryDAO.Latitude,
+				Longitude: bakeryDAO.Longitude,
 			},
+			OpeningHours: convertOpeningHours(bakeryDAO.OpeningHours),
 			Distance:     bakeryDistance,
 			Favorite:     bakeryDAO.UserID != nil,
 			BreadDetails: breadDetailMap[bakeryDAO.ID],
@@ -264,13 +264,13 @@ func (r *bakeryRepository) Get(ctx context.Context, bakeryID int, latitude float
 
 	bakery := models.BakeryDetail{
 		Bakery: models.Bakery{
-			ID:           bakeryDAO.ID,
-			Name:         bakeryDAO.Name,
-			Address:      bakeryDAO.Address,
-			OpeningHours: bakeryDAO.OpeningHours,
-			Latitude:     bakeryDAO.Latitude,
-			Longitude:    bakeryDAO.Longitude,
+			ID:        bakeryDAO.ID,
+			Name:      bakeryDAO.Name,
+			Address:   bakeryDAO.Address,
+			Latitude:  bakeryDAO.Latitude,
+			Longitude: bakeryDAO.Longitude,
 		},
+		OpeningHours: convertOpeningHours(bakeryDAO.OpeningHours),
 		Distance:     bakeryDistance,
 		Favorite:     bakeryDAO.UserID != nil,
 		BreadDetails: breadDetails,
@@ -322,4 +322,20 @@ func (r *bakeryRepository) UpdateBreadAvailabilities(ctx context.Context, breadA
 	}
 
 	return nil
+}
+
+func convertOpeningHours(val string) []models.OpeningHours {
+	var openingHours []models.OpeningHours
+	openingHoursForDays := strings.Split(val, ",")
+	for _, openingHoursForDay := range openingHoursForDays {
+		hours := strings.Split(openingHoursForDay, "-")
+		if len(hours) != 2 {
+			return nil
+		}
+		openingHours = append(openingHours, models.OpeningHours{
+			Open:  hours[0],
+			Close: hours[1],
+		})
+	}
+	return openingHours
 }
