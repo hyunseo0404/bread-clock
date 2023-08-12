@@ -31,7 +31,7 @@ type searchBakeriesRequest struct {
 // @Param		offset query string false "조회 offset"
 // @Param		filter query string false "필터 옵션 (favorites)"
 // @Param		loc query string false "현재 위치 좌표값 (위도,경도)"
-// @Success		200 {object} BakeryList
+// @Success		200 {object} []models.BakeryDetail
 // @Failure		400
 // @Failure		500
 // @Router		/search [GET]

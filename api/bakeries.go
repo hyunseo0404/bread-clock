@@ -15,45 +15,6 @@ type bakeriesHandler struct {
 	bakeryRepository db.BakeryRepository
 }
 
-type OpeningHours struct {
-	Open  string `json:"open"`
-	Close string `json:"close"`
-}
-
-type Bread struct {
-	ID        int  `json:"id"`
-	Available bool `json:"available"`
-}
-
-type BreadDetail struct {
-	Bread
-	AvailableHours []string `json:"availableHours"`
-	PhotoURL       string   `json:"photoUrl"`
-}
-
-type BreadList struct {
-	Breads []Bread `json:"breads"`
-}
-
-type Bakery struct {
-	ID           int           `json:"id"`
-	Name         string        `json:"name"`
-	Coordinates  string        `json:"coordinates"`
-	Favorite     bool          `json:"favorite"`
-	BreadDetails []BreadDetail `json:"breads"`
-	PhotoURLs    []string      `json:"photoUrls"`
-}
-
-type BakeryDetail struct {
-	Bakery
-	Address      string         `json:"address"`
-	OpeningHours []OpeningHours `json:"openingHours"`
-}
-
-type BakeryList struct {
-	Bakeries []Bakery `json:"bakeries"`
-}
-
 type listBakeriesRequest struct {
 	Sort     string `form:"sort"`
 	Size     int    `form:"size"`
@@ -62,14 +23,14 @@ type listBakeriesRequest struct {
 	Location string `form:"loc"`
 }
 
-type updateBreadAvailability struct {
+type breadAvailability struct {
 	ID        int  `json:"id"`
 	Available bool `json:"available"`
 }
 
 type updateBreadAvailabilitiesRequest struct {
-	BakeryID            int                       `form:"bakeryId"`
-	BreadAvailabilities []updateBreadAvailability `json:"breads"`
+	BakeryID            int                 `form:"bakeryId"`
+	BreadAvailabilities []breadAvailability `json:"breads"`
 }
 
 // listBakeries godoc
@@ -82,7 +43,7 @@ type updateBreadAvailabilitiesRequest struct {
 // @Param		offset query string false "조회 offset"
 // @Param		filter query string false "필터 옵션 (favorites)"
 // @Param		loc query string false "현재 위치 좌표값 (위도,경도)"
-// @Success		200 {object} BakeryList
+// @Success		200 {object} []models.BakeryDetail
 // @Failure		400
 // @Failure		500
 // @Router		/bakeries [GET]
@@ -152,7 +113,7 @@ func (h *bakeriesHandler) listBakeries(c *gin.Context) {
 // @Produce		json
 // @Param		bakeryId path int true "빵집 ID"
 // @Param		loc query string false "현재 위치 좌표값 (위도,경도)"
-// @Success		200 {object} BakeryDetail
+// @Success		200 {object} models.BakeryDetail
 // @Failure		400
 // @Failure		404
 // @Failure		500
@@ -263,7 +224,7 @@ func (h *bakeriesHandler) unmarkBakeryAsFavorite(c *gin.Context) {
 // @Tags		Bakeries
 // @Produce		json
 // @Param		bakeryId path int true "빵집 ID"
-// @Param		BreadList body BreadList true "빵 정보 리스트"
+// @Param		BreadList body updateBreadAvailabilitiesRequest true "빵 정보 리스트"
 // @Success		200
 // @Failure		400
 // @Failure		404

@@ -103,7 +103,10 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.BakeryList"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.BakeryDetail"
+                            }
                         }
                     },
                     "400": {
@@ -144,7 +147,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.BakeryDetail"
+                            "$ref": "#/definitions/models.BakeryDetail"
                         }
                     },
                     "400": {
@@ -183,7 +186,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.BreadList"
+                            "$ref": "#/definitions/api.updateBreadAvailabilitiesRequest"
                         }
                     }
                 ],
@@ -324,7 +327,10 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.BakeryList"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.BakeryDetail"
+                            }
                         }
                     },
                     "400": {
@@ -338,85 +344,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "api.Bakery": {
-            "type": "object",
-            "properties": {
-                "breads": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.BreadDetail"
-                    }
-                },
-                "coordinates": {
-                    "type": "string"
-                },
-                "favorite": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "photoUrls": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "api.BakeryDetail": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "breads": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.BreadDetail"
-                    }
-                },
-                "coordinates": {
-                    "type": "string"
-                },
-                "favorite": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "openingHours": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.OpeningHours"
-                    }
-                },
-                "photoUrls": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "api.BakeryList": {
-            "type": "object",
-            "properties": {
-                "bakeries": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.Bakery"
-                    }
-                }
-            }
-        },
-        "api.Bread": {
+        "api.breadAvailability": {
             "type": "object",
             "properties": {
                 "available": {
@@ -427,7 +355,76 @@ const docTemplate = `{
                 }
             }
         },
-        "api.BreadDetail": {
+        "api.loginRequest": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string"
+                },
+                "provider": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.updateBreadAvailabilitiesRequest": {
+            "type": "object",
+            "properties": {
+                "bakeryId": {
+                    "type": "integer"
+                },
+                "breads": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api.breadAvailability"
+                    }
+                }
+            }
+        },
+        "models.BakeryDetail": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "breads": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.BreadDetail"
+                    }
+                },
+                "distance": {
+                    "type": "number"
+                },
+                "favorite": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "openingHours": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.OpeningHours"
+                    }
+                },
+                "photoUrls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "models.BreadDetail": {
             "type": "object",
             "properties": {
                 "available": {
@@ -442,40 +439,21 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "photoUrl": {
+                "name": {
+                    "type": "string"
+                },
+                "photoURL": {
                     "type": "string"
                 }
             }
         },
-        "api.BreadList": {
-            "type": "object",
-            "properties": {
-                "breads": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.Bread"
-                    }
-                }
-            }
-        },
-        "api.OpeningHours": {
+        "models.OpeningHours": {
             "type": "object",
             "properties": {
                 "close": {
                     "type": "string"
                 },
                 "open": {
-                    "type": "string"
-                }
-            }
-        },
-        "api.loginRequest": {
-            "type": "object",
-            "properties": {
-                "accessToken": {
-                    "type": "string"
-                },
-                "provider": {
                     "type": "string"
                 }
             }
