@@ -2,6 +2,7 @@ package models
 
 type Bakery struct {
 	ID           int     `gorm:"primaryKey" json:"id"`
+	PlaceID      int     `gorm:"uniqueIndex" json:"-"`
 	Name         string  `gorm:"size:128;not null" json:"name"`
 	Address      string  `gorm:"size:255" json:"address"`
 	OpeningHours string  `gorm:"size:70" json:"-"`
