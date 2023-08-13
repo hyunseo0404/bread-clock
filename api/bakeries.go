@@ -97,6 +97,11 @@ func (h *bakeriesHandler) listBakeries(c *gin.Context) {
 		needsDistance = true
 	}
 
+	if latitude == 0 && longitude == 0 {
+		sortOption = db.SortByName
+		needsDistance = false
+	}
+
 	bakeries, err := h.bakeryRepository.List(c, sortOption, req.Size, req.Offset, latitude, longitude, needsDistance, userID)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
