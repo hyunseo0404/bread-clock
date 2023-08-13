@@ -1,0 +1,331 @@
+basePath: /api/v1
+definitions:
+  api.breadAvailability:
+    properties:
+      available:
+        type: boolean
+      id:
+        type: integer
+    type: object
+  api.loginRequest:
+    properties:
+      accessToken:
+        type: string
+      provider:
+        type: string
+    type: object
+  api.updateBreadAvailabilitiesRequest:
+    properties:
+      bakeryId:
+        type: integer
+      breads:
+        items:
+          $ref: '#/definitions/api.breadAvailability'
+        type: array
+    type: object
+  models.BakeryDetail:
+    properties:
+      address:
+        type: string
+      breads:
+        items:
+          $ref: '#/definitions/models.BreadDetail'
+        type: array
+      distance:
+        type: number
+      favorite:
+        type: boolean
+      id:
+        type: integer
+      latitude:
+        type: number
+      longitude:
+        type: number
+      name:
+        type: string
+      openingHours:
+        items:
+          $ref: '#/definitions/models.OpeningHours'
+        type: array
+      photoUrls:
+        items:
+          type: string
+        type: array
+    type: object
+  models.BreadDetail:
+    properties:
+      available:
+        type: boolean
+      availableHours:
+        items:
+          type: string
+        type: array
+      id:
+        type: integer
+      name:
+        type: string
+      photoURL:
+        type: string
+    type: object
+  models.OpeningHours:
+    properties:
+      close:
+        type: string
+      open:
+        type: string
+    type: object
+  models.User:
+    properties:
+      avatarUrl:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      provider:
+        type: string
+    type: object
+host: breadclock.hyunchung.dev
+info:
+  contact: {}
+  description: 빵시계 API 서버입니다.
+  title: 빵시계 API 서버
+  version: "1.0"
+paths:
+  /auth/login/:provider:
+    post:
+      description: OAuth2로 발급 받은 코드를 이용한 토큰 발급 및 로그인 처리
+      parameters:
+      - description: OAuth2 provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: 로그인 요청 정보
+        in: body
+        name: loginRequest
+        required: true
+        schema:
+          $ref: '#/definitions/api.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: 로그인
+      tags:
+      - Authentication
+  /auth/me:
+    get:
+      description: 현재 로그인된 사용자 정보 조회
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: 사용자 정보 조회
+      tags:
+      - Authentication
+  /bakeries:
+    get:
+      description: 전체 빵집 목록 조회 (sort param 미지정 시 이름순 정렬)
+      parameters:
+      - description: 정렬 옵션 (name|distance)
+        in: query
+        name: sort
+        type: string
+      - description: 조회 개수
+        in: query
+        name: size
+        type: string
+      - description: 조회 offset
+        in: query
+        name: offset
+        type: string
+      - description: 필터 옵션 (favorites)
+        in: query
+        name: filter
+        type: string
+      - description: 현재 위치 좌표값 (위도,경도)
+        in: query
+        name: loc
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.BakeryDetail'
+            type: array
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: 빵집 목록 조회
+      tags:
+      - Bakeries
+  /bakeries/:bakeryId:
+    get:
+      description: 특정 빵집에 대한 상세 정보 조회
+      parameters:
+      - description: 빵집 ID
+        in: path
+        name: bakeryId
+        required: true
+        type: integer
+      - description: 현재 위치 좌표값 (위도,경도)
+        in: query
+        name: loc
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BakeryDetail'
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: 빵집 상세 조회
+      tags:
+      - Bakeries
+  /bakeries/:bakeryId/breads/availability:
+    put:
+      description: 특정 빵집의 빵 종류별 매진 정보 갱신
+      parameters:
+      - description: 빵집 ID
+        in: path
+        name: bakeryId
+        required: true
+        type: integer
+      - description: 빵 정보 리스트
+        in: body
+        name: BreadList
+        required: true
+        schema:
+          $ref: '#/definitions/api.updateBreadAvailabilitiesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: 빵 매진 정보 갱신
+      tags:
+      - Bakeries
+  /bakeries/:bakeryId/favorite:
+    delete:
+      description: 특정 빵집을 즐겨찾기에서 해제
+      parameters:
+      - description: 빵집 ID
+        in: path
+        name: bakeryId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: 빵집 즐겨찾기 해제
+      tags:
+      - Bakeries
+    put:
+      description: 특정 빵집을 즐겨찾기에 추가
+      parameters:
+      - description: 빵집 ID
+        in: path
+        name: bakeryId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: 빵집 즐겨찾기 추가
+      tags:
+      - Bakeries
+  /search:
+    get:
+      description: 특정 빵 종류가 제공되는 빵집들을 검색 (sort param 미지정 시 이름순 정렬)
+      parameters:
+      - description: 검색 문자열
+        in: query
+        name: q
+        required: true
+        type: string
+      - description: 정렬 옵션 (name|distance)
+        in: query
+        name: sort
+        type: string
+      - description: 조회 개수
+        in: query
+        name: size
+        type: string
+      - description: 조회 offset
+        in: query
+        name: offset
+        type: string
+      - description: 필터 옵션 (favorites)
+        in: query
+        name: filter
+        type: string
+      - description: 현재 위치 좌표값 (위도,경도)
+        in: query
+        name: loc
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.BakeryDetail'
+            type: array
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: 빵 이름으로 빵집 검색
+      tags:
+      - Search
+schemes:
+- https
+swagger: "2.0"
