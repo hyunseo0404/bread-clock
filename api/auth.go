@@ -79,3 +79,33 @@ func (h *authHandler) login(c *gin.Context) {
 		AvatarURL:   user.AvatarURL,
 	})
 }
+
+// getUser godoc
+// @Summary		사용자 정보 조회
+// @Description 현재 로그인된 사용자 정보 조회
+// @Tags		Authentication
+// @Produce		json
+// @Success		200 {object} models.User
+// @Failure		401
+// @Failure		404
+// @Failure		500
+// @Router		/auth/me [GET]
+func (h *authHandler) getUser(c *gin.Context) {
+	userID := c.GetInt("user_id")
+	if userID <= 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not logged in"})
+		return
+	}
+
+	user, err := h.userRepository.FindByUserID(c, userID)
+	if err != nil {
+		if errors.Is(err, e.ErrDBNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			return
+		}
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, &user)
+}

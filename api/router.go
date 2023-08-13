@@ -8,14 +8,14 @@ import (
 
 func RegisterRoutes(r *gin.Engine, userRepository db.UserRepository, bakeryRepository db.BakeryRepository) {
 	g := r.Group("/api/v1")
+	g.Use(middlewares.AuthMiddleware())
 
 	ah := authHandler{
 		userRepository: userRepository,
 	}
 	authRouter := g.Group("/auth")
 	authRouter.POST("/login/:provider", ah.login)
-
-	g.Use(middlewares.AuthMiddleware())
+	authRouter.GET("/me", ah.getUser)
 
 	sh := searchHandler{
 		bakeryRepository: bakeryRepository,
