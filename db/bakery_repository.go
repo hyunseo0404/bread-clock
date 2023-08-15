@@ -116,7 +116,8 @@ func (r *bakeryRepository) List(ctx context.Context, sortOption SortOption, size
 	for _, bakeryDAO := range bakeryDAOs {
 		var bakeryDistance *float64
 		if needsDistance {
-			bakeryDistance = &bakeryDAO.Distance
+			bakeryDistanceTmp := bakeryDAO.Distance
+			bakeryDistance = &bakeryDistanceTmp
 		}
 
 		bakeries = append(bakeries, models.BakeryDetail{
@@ -199,7 +200,8 @@ func (r *bakeryRepository) ListForBreads(ctx context.Context, q string, sortOpti
 	for _, bakeryDAO := range bakeryDAOs {
 		var bakeryDistance *float64
 		if needsDistance {
-			bakeryDistance = &bakeryDAO.Distance
+			bakeryDistanceTmp := bakeryDAO.Distance
+			bakeryDistance = &bakeryDistanceTmp
 		}
 
 		bakeries = append(bakeries, models.BakeryDetail{
