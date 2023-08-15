@@ -85,6 +85,10 @@ func main() {
 	}
 
 	r := gin.Default()
+	r.ForwardedByClientIP = true
+	if err = r.SetTrustedProxies([]string{"192.168.1.0/24"}); err != nil {
+		zap.S().Fatalw("failed to set trusted proxies", err)
+	}
 
 	// CORS
 	r.Use(func(c *gin.Context) {
