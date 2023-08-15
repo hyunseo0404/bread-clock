@@ -92,7 +92,7 @@ func (r *bakeryRepository) List(ctx context.Context, sortOption SortOption, size
 		Select("ba.bakery_id, b.id, b.name, ba.available, ba.available_hours, url AS photo_url").
 		Joins("LEFT JOIN bread_photos AS bp ON bp.bakery_id = ba.bakery_id AND bp.bread_id = ba.bread_id").
 		Joins("INNER JOIN breads AS b ON ba.bread_id = b.id").
-		Where("ba.bakery_id IN (?)", bakeryIDs).
+		Where("ba.bakery_id IN ?", bakeryIDs).
 		Find(&breadDAOs).Error
 	if err != nil {
 		return nil, err
@@ -149,7 +149,7 @@ func (r *bakeryRepository) ListForBreads(ctx context.Context, q string, sortOpti
 	}
 
 	var breadDAOs []BreadDAO
-	subQuery := tx.Table("breads").Where("name LIKE (?)", q)
+	subQuery := tx.Table("breads").Where("name LIKE ?", q)
 	query := tx.
 		Select("b.id, b.name, ba.bakery_id, ba.available, ba.available_hours, bp.url AS photo_url").
 		Table("(?) AS b", subQuery).
@@ -181,7 +181,7 @@ func (r *bakeryRepository) ListForBreads(ctx context.Context, q string, sortOpti
 	subQuery = tx.
 		Table("bakeries").
 		Select(fmt.Sprintf("*, (%s) AS distance", distance)).
-		Where("id IN (?)", bakeryIDs).
+		Where("id IN ?", bakeryIDs).
 		Order(string(sortOption)).
 		Offset(offset).
 		Limit(size)
@@ -233,7 +233,7 @@ func (r *bakeryRepository) Get(ctx context.Context, bakeryID int, latitude float
 		Joins(fmt.Sprintf("LEFT JOIN favorite_bakeries AS fb ON b.id = fb.bakery_id AND fb.user_id = %d", userID)).
 		Joins("LEFT JOIN bakery_photos AS bp ON bp.bakery_id = b.id").
 		Group("id").
-		Where("b.id = (?)", bakeryID).Find(&bakeryDAO).Error
+		Where("b.id = ?", bakeryID).Find(&bakeryDAO).Error
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +247,7 @@ func (r *bakeryRepository) Get(ctx context.Context, bakeryID int, latitude float
 		Select("b.id, b.name, ba.available, ba.available_hours, url AS photo_url").
 		Joins("LEFT JOIN bread_photos AS bp ON bp.bakery_id = ba.bakery_id AND bp.bread_id = ba.bread_id").
 		Joins("INNER JOIN breads AS b ON ba.bread_id = b.id").
-		Where("ba.bakery_id = (?)", bakeryID).
+		Where("ba.bakery_id = ?", bakeryID).
 		Find(&breadDAOs).Error
 	if err != nil {
 		return nil, err
